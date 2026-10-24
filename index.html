@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 背单词 · 开发中 — 间隔重复词汇学习应用</title>
+  <meta name="description" content="AI 背单词是一款开发中的间隔重复（SRS）背单词应用：复习优先、每日新词名额、三档评分、学完自动续组、五本词书、可安装 PWA。项目尚未发布，本页同步产品定位与开发进展（当前 v2.0）。">
+  <meta name="theme-color" content="#f5efe3">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AI 背单词">
+  <meta property="og:title" content="AI 背单词 · 开发中 — 间隔重复词汇学习应用">
+  <meta property="og:description" content="AI 背单词是一款开发中的间隔重复（SRS）背单词应用：复习优先、每日新词名额、三档评分、学完自动续组、五本词书、可安装 PWA。项目尚未发布，本页同步产品定位与开发进展（当前 v2.0）。">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:locale:alternate" content="en_US">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="AI 背单词 · 开发中 — 间隔重复词汇学习应用">
+  <meta name="twitter:description" content="AI 背单词是一款开发中的间隔重复（SRS）背单词应用：复习优先、每日新词名额、三档评分、学完自动续组、五本词书、可安装 PWA。项目尚未发布，本页同步产品定位与开发进展（当前 v2.0）。">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "AI 背单词",
+    "description": "一款开发中的间隔重复（SRS）背单词应用：复习优先、每日新词名额、三档评分、自动续组、五本词书、可安装 PWA。",
+    "inLanguage": ["zh-CN", "en"]
+  }
+  </script>
+
+  <link rel="stylesheet" href="assets/style.css">
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("beidanci-lang"); } catch (e) { saved = null; }
+      var fromQuery = null;
+      try {
+        fromQuery = new URLSearchParams(window.location.search).get("lang");
+      } catch (e) { fromQuery = null; }
+      var lang = "zh";
+      if (fromQuery === "en" || fromQuery === "zh") { lang = fromQuery; }
+      else if (saved === "en" || saved === "zh") { lang = saved; }
+      document.documentElement.lang = lang === "en" ? "en" : "zh-CN";
+    })();
+  </script>
+</head>
+<body id="top">
+  <a class="skip-link" href="#main"><span data-lang="zh">跳到主要内容</span><span data-lang="en">Skip to main content</span></a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#top" aria-label="AI 背单词">
+        <span class="brand-mark" aria-hidden="true">词</span>
+        <span class="brand-name">AI <span data-lang="zh">背单词</span><span data-lang="en">Vocabulary</span></span>
+      </a>
+      <nav class="site-nav" aria-label="主导航 / Main navigation">
+        <a href="#features"><span data-lang="zh">特性</span><span data-lang="en">Features</span></a>
+        <a href="#flow"><span data-lang="zh">流程</span><span data-lang="en">Session</span></a>
+        <a href="#progress"><span data-lang="zh">进展</span><span data-lang="en">Progress</span></a>
+        <a href="#faq"><span data-lang="zh">常见问题</span><span data-lang="en">FAQ</span></a>
+      </nav>
+      <div class="lang-switch" role="group" aria-label="语言切换 / Language">
+        <button type="button" class="lang-opt lang-opt-zh" id="langOptZh" data-target-lang="zh" aria-pressed="true" lang="zh-CN">中</button>
+        <button type="button" class="lang-opt lang-opt-en" id="langOptEn" data-target-lang="en" aria-pressed="false" lang="en">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- ================= HERO ================= -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="status-pill">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span data-lang="zh">开发中 · 当前版本 v2.0</span>
+            <span data-lang="en">In development · v2.0</span>
+          </p>
+          <h1 class="hero-title">
+            <span data-lang="zh">在快要忘记的时候，<em>恰好再见到它</em></span>
+            <span data-lang="en">See each word again <em>right before you forget it</em></span>
+          </h1>
+          <p class="hero-sub">
+            <span data-lang="zh">「AI 背单词」是一款开发中的间隔重复（SRS）词汇学习应用：每天只学少量新词，到期的复习词优先出现；没学会的词不占当日名额，一组学完自动续下一组。项目尚未发布——这个页面记录它的定位与开发进展。</span>
+            <span data-lang="en">AI 背单词 is a spaced-repetition vocabulary app, currently in development: a few new words a day, with due reviews always coming first. Words you haven't truly learned never consume your daily quota, and finished groups flow into the next until the day is done. It isn't released yet — this page tracks what it is and how the build is going.</span>
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-solid" href="#progress">
+              <span data-lang="zh">查看开发进展</span><span data-lang="en">See development progress</span>
+            </a>
+            <a class="btn btn-ghost" href="#flow">
+              <span data-lang="zh">了解学习流程</span><span data-lang="en">How a session works</span>
+            </a>
+          </div>
+          <ul class="fact-chips" aria-label="产品要点 / Key facts">
+            <li><span data-lang="zh">复习优先</span><span data-lang="en">Reviews first</span></li>
+            <li><span data-lang="zh">每日新词名额</span><span data-lang="en">Daily new-word quota</span></li>
+            <li><span data-lang="zh">五本词书</span><span data-lang="en">Five word books</span></li>
+            <li><span data-lang="zh">可安装 PWA</span><span data-lang="en">Installable PWA</span></li>
+          </ul>
+        </div>
+
+        <figure class="hero-visual">
+          <figcaption class="mock-note">
+            <span data-lang="zh">界面示意 · 以词书内单词 abandon 为例</span>
+            <span data-lang="en">Interface mockup · using “abandon”, a word from the books</span>
+          </figcaption>
+          <div class="mock-stack" aria-hidden="true">
+            <span class="stack-layer stack-a"></span>
+            <span class="stack-layer stack-b"></span>
+            <div class="mock-card">
+              <p class="mock-queue"><span data-lang="zh">复习 2 · 新词 5</span><span data-lang="en">Review 2 · New 5</span></p>
+              <div class="mock-word-row">
+                <p class="mock-word">abandon</p>
+                <span class="mock-pos">v.</span>
+              </div>
+              <div class="mock-divider" aria-hidden="true"></div>
+              <div class="mock-gloss">
+                <p class="mock-gloss-label"><span data-lang="zh">词义</span><span data-lang="en">Meaning</span></p>
+                <p class="mock-gloss-text">
+                  <span data-lang="zh">放弃；抛弃</span>
+                  <span data-lang="en">to give up; to leave behind</span>
+                </p>
+              </div>
+              <div class="mock-btns" aria-hidden="true">
+                <span class="mock-btn mock-btn-again"><span data-lang="zh">重来</span><span data-lang="en">Again</span></span>
+                <span class="mock-btn"><span data-lang="zh">良好</span><span data-lang="en">Good</span></span>
+                <span class="mock-btn"><span data-lang="zh">简单</span><span data-lang="en">Easy</span></span>
+              </div>
+              <div class="mock-progress">
+                <span class="mock-progress-label"><span data-lang="zh">已完成 3 / 8</span><span data-lang="en">Completed 3 / 8</span></span>
+                <span class="mock-progress-bar" aria-hidden="true"><i style="width: 37.5%"></i></span>
+              </div>
+            </div>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ================= FEATURES ================= -->
+    <section class="section" id="features">
+      <div class="container">
+        <header class="section-head">
+          <p class="eyebrow"><span class="seal" aria-hidden="true">特</span><span data-lang="zh">核心特性</span><span data-lang="en">Features</span></p>
+          <h2>
+            <span data-lang="zh">为「记住」设计，而不是为「背完」</span>
+            <span data-lang="en">Built for remembering, not just for finishing</span>
+          </h2>
+          <p class="section-intro">
+            <span data-lang="zh">全部特性围绕一件事：让每一次复习都出现在快要忘记的时候。</span>
+            <span data-lang="en">Every feature serves one goal: each review lands right before you'd forget.</span>
+          </p>
+        </header>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <span class="feature-tile" aria-hidden="true">复</span>
+            <h3><span data-lang="zh">间隔重复调度</span><span data-lang="en">Spaced-repetition scheduling</span></h3>
+            <p>
+              <span data-lang="zh">每张卡片按遗忘曲线安排下次复习时间。打开学习页时，到期的复习词先出现，然后才是今天的新词——顶部会明确告诉你队列是「复习 X · 新词 Y」。</span>
+              <span data-lang="en">Every card schedules its next review along the forgetting curve. Due reviews always come before new words, and the study page tells you exactly what's in the queue: “Review X · New Y”.</span>
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-tile" aria-hidden="true">额</span>
+            <h3><span data-lang="zh">每日新词名额</span><span data-lang="en">A daily quota of new words</span></h3>
+            <p>
+              <span data-lang="zh">每天只有固定数量的新词名额。新词点「重来」不算学会：不建卡、不占名额，当天稍后回到队列里，直到真正学会为止。</span>
+              <span data-lang="en">Each day brings a fixed quota of new words. Rating a new word “Again” doesn't create a card or consume quota — it stays a new word and returns later the same day until you actually learn it.</span>
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-tile" aria-hidden="true">评</span>
+            <h3><span data-lang="zh">三档评分 · 诚实计数</span><span data-lang="en">Three grades, honest counting</span></h3>
+            <p>
+              <span data-lang="zh">每张卡片自评「重来 / 良好 / 简单」。「重来」的卡片回到本组末尾再出现一次，但不计入「已完成」——进度条永远不会虚高。</span>
+              <span data-lang="en">Rate each card Again, Good, or Easy. An “Again” card comes back at the end of its group but never counts as completed — the progress bar never lies.</span>
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-tile" aria-hidden="true">续</span>
+            <h3><span data-lang="zh">学完一组，自动续下一组</span><span data-lang="en">Auto-continue to the next group</span></h3>
+            <p>
+              <span data-lang="zh">学完一组而当天还有名额时，自动拉取下一组继续学；只有当天的名额全部用完，才会看到「今日任务完成」。进度统计跨组累计。</span>
+              <span data-lang="en">Finished a group but still have quota left? The next group loads automatically. The completion page only appears when the whole day's quota is truly done, with progress counted across groups.</span>
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-tile" aria-hidden="true">典</span>
+            <h3><span data-lang="zh">五本词书 · 完整词义</span><span data-lang="en">Five word books, full definitions</span></h3>
+            <p>
+              <span data-lang="zh">内置五本词书。单词详情包含中文释义、带词性标签的英文释义、例句与近/反义词；不在词书里的词（如变形词）也会自动翻译出中文词义，并标明是词典补充内容。</span>
+              <span data-lang="en">Five word books built in. Word pages show Chinese definitions, English definitions with part-of-speech tags, example sentences, and synonyms/antonyms. Words outside the books (like inflected forms) get an auto-translated Chinese gloss, clearly marked as a dictionary supplement.</span>
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-tile" aria-hidden="true">装</span>
+            <h3><span data-lang="zh">可安装的 PWA</span><span data-lang="en">An installable PWA</span></h3>
+            <p>
+              <span data-lang="zh">以 Web 应用形式开发，可安装到桌面或主屏。页面与静态资源离线缓存，学习队列与统计等接口永远直连服务器，不会拿到过期数据。</span>
+              <span data-lang="en">Built as a web app you can install to your desktop or home screen. Pages and static assets are cached for offline use, while study queues and stats always hit the server directly — never stale data.</span>
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FLOW ================= -->
+    <section class="section section-alt" id="flow">
+      <div class="container">
+        <header class="section-head">
+          <p class="eyebrow"><span class="seal" aria-hidden="true">序</span><span data-lang="zh">学习流程</span><span data-lang="en">A study session</span></p>
+          <h2>
+            <span data-lang="zh">一次学习会话，是这样进行的</span>
+            <span data-lang="en">How one study session runs</span>
+          </h2>
+          <p class="section-intro">
+            <span data-lang="zh">从打开首页到「今日任务完成」，整条路径不需要你做任何计划。</span>
+            <span data-lang="en">From opening the dashboard to “day's task complete”, the path needs no planning on your part.</span>
+          </p>
+        </header>
+
+        <ol class="flow-steps">
+          <li class="flow-step">
+            <span class="flow-num" aria-hidden="true">01</span>
+            <h3><span data-lang="zh">打开首页</span><span data-lang="en">Open the dashboard</span></h3>
+            <p><span data-lang="zh">今日概览与学习统计一目了然。</span><span data-lang="en">Today's overview and your study stats, at a glance.</span></p>
+          </li>
+          <li class="flow-step">
+            <span class="flow-num" aria-hidden="true">02</span>
+            <h3><span data-lang="zh">开始学习</span><span data-lang="en">Start studying</span></h3>
+            <p><span data-lang="zh">到期的复习词先出现，然后是今天的新词。</span><span data-lang="en">Due reviews come first, then today's new words.</span></p>
+          </li>
+          <li class="flow-step">
+            <span class="flow-num" aria-hidden="true">03</span>
+            <h3><span data-lang="zh">自评三档</span><span data-lang="en">Rate each card</span></h3>
+            <p><span data-lang="zh">重来、良好，还是简单？由你自己判断。</span><span data-lang="en">Again, Good, or Easy — you decide.</span></p>
+          </li>
+          <li class="flow-step">
+            <span class="flow-num" aria-hidden="true">04</span>
+            <h3><span data-lang="zh">自动续组</span><span data-lang="en">Keep going</span></h3>
+            <p><span data-lang="zh">名额没用完，就自动进入下一组。</span><span data-lang="en">While quota remains, the next group loads on its own.</span></p>
+          </li>
+          <li class="flow-step">
+            <span class="flow-num" aria-hidden="true">05</span>
+            <h3><span data-lang="zh">今日完成</span><span data-lang="en">Day complete</span></h3>
+            <p><span data-lang="zh">名额用完，回到首页，明天再来。</span><span data-lang="en">Quota spent — back to the dashboard until tomorrow.</span></p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ================= PROGRESS ================= -->
+    <section class="section" id="progress">
+      <div class="container">
+        <header class="section-head">
+          <p class="eyebrow"><span class="seal" aria-hidden="true">进</span><span data-lang="zh">开发进展</span><span data-lang="en">Development progress</span></p>
+          <h2>
+            <span data-lang="zh">还在打磨，尚未发布</span>
+            <span data-lang="en">Still polishing, not yet released</span>
+          </h2>
+          <p class="section-intro">
+            <span data-lang="zh">以下内容整理自项目的开发日志与错误档案——这个项目用文档驱动开发，每一次修改都有迹可循。</span>
+            <span data-lang="en">Everything below is compiled from the project's development log and error archive — this project builds documentation-first, so every change leaves a trail.</span>
+          </p>
+        </header>
+
+        <p class="status-strip">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span data-lang="zh">当前状态：开发中，尚未发布 · 最新版本 v2.0（2026-08-27）</span>
+          <span data-lang="en">Current status: in development, unreleased · latest v2.0 (2026-08-27)</span>
+        </p>
+
+        <ol class="timeline">
+          <li class="timeline-item">
+            <div class="timeline-meta">
+              <span class="version-badge">v2.0</span>
+              <time datetime="2026-08-27">2026-08-27</time>
+            </div>
+            <h3><span data-lang="zh">词性展示 + 词书外单词显示中文词义</span><span data-lang="en">Parts of speech &amp; out-of-book glosses</span></h3>
+            <p>
+              <span data-lang="zh">英文释义逐条标注词性；词书外单词自动翻译出中文词义，并注明是词典补充内容。</span>
+              <span data-lang="en">English definitions now carry part-of-speech tags; words outside the word books get an auto-translated Chinese gloss, marked as a dictionary supplement.</span>
+            </p>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-meta">
+              <span class="version-badge">v1.9</span>
+              <time datetime="2026-08-27">2026-08-27</time>
+            </div>
+            <h3><span data-lang="zh">修复缓存导致的旧学习队列</span><span data-lang="en">Cache fix for stale study queues</span></h3>
+            <p>
+              <span data-lang="zh">Service Worker 不再缓存 /api/* 接口，学习队列与统计永远来自服务器。</span>
+              <span data-lang="en">The service worker no longer caches /api/* routes; queues and stats always come straight from the server.</span>
+            </p>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-meta">
+              <span class="version-badge">v1.8</span>
+              <time datetime="2026-08-27">2026-08-27</time>
+            </div>
+            <h3><span data-lang="zh">学习会话自动续下一组</span><span data-lang="en">Sessions auto-continue</span></h3>
+            <p>
+              <span data-lang="zh">学完一组若当天还有名额，自动拉取下一组；完成页只在真正学完时出现，进度跨组累计。</span>
+              <span data-lang="en">Finish a group with quota left and the next one loads automatically; the completion page only shows when the day is truly done, with progress counted across groups.</span>
+            </p>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-meta">
+              <span class="version-badge">v1.7</span>
+              <time datetime="2026-08-27">2026-08-27</time>
+            </div>
+            <h3><span data-lang="zh">没学会的词不占新词名额</span><span data-lang="en">Unlearned words don't consume quota</span></h3>
+            <p>
+              <span data-lang="zh">新词点「重来」不再建卡、不再占用当天新词名额，直到真正学会为止。</span>
+              <span data-lang="en">Rating a new word “Again” no longer creates a card or eats the daily quota until it's actually learned.</span>
+            </p>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-meta">
+              <span class="version-badge">v1.6</span>
+              <time datetime="2026-08-27">2026-08-27</time>
+            </div>
+            <h3><span data-lang="zh">学习流程集中修正</span><span data-lang="en">Study-flow fixes</span></h3>
+            <p>
+              <span data-lang="zh">复习优先的队列展示、进度计数与完成页文案，在这一版集中修正。</span>
+              <span data-lang="en">Review-first queue display, progress counting, and completion-page wording were fixed in this round.</span>
+            </p>
+          </li>
+        </ol>
+
+        <div class="practice">
+          <h3 class="practice-title">
+            <span data-lang="zh">工程实践</span><span data-lang="en">Engineering practices</span>
+          </h3>
+          <div class="practice-grid">
+            <div class="practice-card">
+              <h4><span data-lang="zh">测试覆盖</span><span data-lang="en">Test coverage</span></h4>
+              <p>
+                <span data-lang="zh">SRS 建卡规则是纯函数并配有单元测试；词典的词性解析同样有测试覆盖。</span>
+                <span data-lang="en">The SRS card-creation rule is a pure function with unit tests; the dictionary's part-of-speech parsing is tested too.</span>
+              </p>
+            </div>
+            <div class="practice-card">
+              <h4><span data-lang="zh">缓存纪律</span><span data-lang="en">Cache discipline</span></h4>
+              <p>
+                <span data-lang="zh">Service Worker 只缓存页面与静态资源，任何 /api/* 接口一律直连服务器。</span>
+                <span data-lang="en">The service worker caches pages and static assets only — every /api/* request bypasses the cache.</span>
+              </p>
+            </div>
+            <div class="practice-card">
+              <h4><span data-lang="zh">文档驱动</span><span data-lang="en">Document-driven</span></h4>
+              <p>
+                <span data-lang="zh">每次修改都记录版本、文件与原因；错误与预防措施归档成册，避免重蹈覆辙。</span>
+                <span data-lang="en">Every change is logged with its version, files, and reasons; errors and preventions are archived so the same mistakes don't repeat.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FAQ ================= -->
+    <section class="section section-alt" id="faq">
+      <div class="container container-narrow">
+        <header class="section-head">
+          <p class="eyebrow"><span class="seal" aria-hidden="true">问</span><span data-lang="zh">常见问题</span><span data-lang="en">FAQ</span></p>
+          <h2>
+            <span data-lang="zh">你可能想问</span>
+            <span data-lang="en">You might be wondering</span>
+          </h2>
+        </header>
+
+        <div class="faq-list">
+          <details class="faq-item" open>
+            <summary>
+              <span data-lang="zh">现在可以下载或使用吗？</span>
+              <span data-lang="en">Can I download or use it now?</span>
+              <span class="faq-mark" aria-hidden="true"></span>
+            </summary>
+            <p>
+              <span data-lang="zh">还不行。项目仍在开发中，尚未发布；本页会随开发进展持续更新。</span>
+              <span data-lang="en">Not yet. The project is still in development and unreleased; this page will be updated as work continues.</span>
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              <span data-lang="zh">「AI」体现在哪里？</span>
+              <span data-lang="en">Where does the “AI” come in?</span>
+              <span class="faq-mark" aria-hidden="true"></span>
+            </summary>
+            <p>
+              <span data-lang="zh">在当前版本里，它意味着两件事：按遗忘曲线安排复习的间隔重复调度，以及词书外单词释义的自动翻译。项目仍在演进。</span>
+              <span data-lang="en">In the current version, it means two things: forgetting-curve-based spaced-repetition scheduling, and automatic translation of definitions for words outside the word books. The project keeps evolving.</span>
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              <span data-lang="zh">支持哪些词书？</span>
+              <span data-lang="en">Which word books are supported?</span>
+              <span class="faq-mark" aria-hidden="true"></span>
+            </summary>
+            <p>
+              <span data-lang="zh">项目内置五本词书；具体书目与词量以发布版本为准。</span>
+              <span data-lang="en">Five word books are built in; the exact list and word counts will be confirmed at release.</span>
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              <span data-lang="zh">它是什么平台的应用？</span>
+              <span data-lang="en">What platform is it built for?</span>
+              <span class="faq-mark" aria-hidden="true"></span>
+            </summary>
+            <p>
+              <span data-lang="zh">以可安装的 Web 应用（PWA）形式开发，在浏览器中即可使用，也能安装到桌面或主屏。</span>
+              <span data-lang="en">It's being built as an installable web app (PWA) — usable in the browser, and installable to your desktop or home screen.</span>
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">词</span>
+        <p class="footer-name">AI <span data-lang="zh">背单词</span><span data-lang="en">Vocabulary</span></p>
+        <p class="footer-status">
+          <span data-lang="zh">开发中 · 尚未发布</span>
+          <span data-lang="en">In development · unreleased</span>
+        </p>
+      </div>
+      <nav class="footer-nav" aria-label="页脚导航 / Footer navigation">
+        <a href="#features"><span data-lang="zh">特性</span><span data-lang="en">Features</span></a>
+        <a href="#flow"><span data-lang="zh">流程</span><span data-lang="en">Session</span></a>
+        <a href="#progress"><span data-lang="zh">进展</span><span data-lang="en">Progress</span></a>
+        <a href="#faq"><span data-lang="zh">常见问题</span><span data-lang="en">FAQ</span></a>
+      </nav>
+    </div>
+    <div class="container footer-note">
+      <p>
+        <span data-lang="zh">页面内容依据项目开发文档（Develop.md、development/）整理。</span>
+        <span data-lang="en">This page is compiled from the project's development documents (Develop.md, development/).</span>
+      </p>
+      <p class="footer-credit">Made with AI · 2026</p>
+    </div>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

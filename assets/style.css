@@ -291,7 +291,20 @@ a:hover { text-decoration: underline; }
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
-  margin-bottom: 30px;
+  margin-bottom: 12px;
+}
+
+.hero-cta-note {
+  margin: 0 0 22px;
+  font-size: 0.88rem;
+  letter-spacing: 0.01em;
+}
+
+.hero-cta-note a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .fact-chips {

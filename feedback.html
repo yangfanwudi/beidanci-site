@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>反馈 · AI 背单词 — 间隔重复词汇学习应用</title>
+  <meta name="description" content="向 AI 背单词提交问题与建议：主邮箱 898249759@qq.com、次邮箱 yangfan.070312@gmail.com，或前往 GitHub Issues。邮件主题以【AI 背单词】开头，作者已设自动星标，保证会被看到。Feedback page for the AI vocabulary app.">
+  <meta name="theme-color" content="#f5efe3">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <!-- 首屏渲染前设定 html[lang]，避免语言闪烁（与 index.html 同一契约） -->
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("beidanci-lang"); } catch (e) { saved = null; }
+      var fromQuery = null;
+      try {
+        fromQuery = new URLSearchParams(window.location.search).get("lang");
+      } catch (e) { fromQuery = null; }
+      var lang = "zh";
+      if (fromQuery === "en" || fromQuery === "zh") { lang = fromQuery; }
+      else if (saved === "en" || saved === "zh") { lang = saved; }
+      document.documentElement.lang = lang === "en" ? "en" : "zh-CN";
+    })();
+  </script>
+
+  <style>
+    /* —— 设计变量：与 assets/style.css 保持一致 —— */
+    :root {
+      --paper: #f5efe3;
+      --paper-deep: #ece3d0;
+      --card: #fffdf6;
+      --ink: #2a2620;
+      --ink-soft: #6b6353;
+      --ink-faint: #998f7c;
+      --line: #d9cdb4;
+      --line-soft: #e7ddc8;
+      --accent: #b93a22;
+      --accent-deep: #932c18;
+      --accent-soft: #f4ddd5;
+      --font-serif: Georgia, "Times New Roman", "Songti SC", "STSong", "SimSun",
+        "Noto Serif CJK SC", "Source Han Serif SC", serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", Arial, sans-serif;
+      --font-mono: "Cascadia Mono", "SF Mono", Consolas, "Liberation Mono", Menlo,
+        monospace;
+    }
+
+    /* —— 语言可见性：html[lang] 驱动 data-lang 元素（与站点同机制） —— */
+    html[lang="en"] [data-lang="zh"] { display: none; }
+    html[lang="zh-CN"] [data-lang="en"],
+    html[lang="zh"] [data-lang="en"] { display: none; }
+
+    * , *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 380px at 85% -10%, rgba(185, 58, 34, 0.06), transparent 62%),
+        radial-gradient(700px 360px at -10% 106%, rgba(42, 38, 32, 0.05), transparent 60%),
+        var(--paper);
+      min-height: 100vh;
+    }
+
+    h1, h2, h3 {
+      font-family: var(--font-serif);
+      line-height: 1.28;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    a { color: var(--accent-deep); }
+    a:hover { text-decoration: underline; }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    .fb-wrap { width: min(780px, calc(100% - 36px)); margin: 0 auto; padding: 0 0 64px; }
+
+    /* —— 顶栏：返回 + 语言切换 —— */
+    .fb-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 18px 0 6px;
+    }
+
+    .fb-back {
+      color: var(--ink-soft);
+      font-size: 0.92rem;
+      text-decoration: none;
+      padding: 6px 10px;
+      margin-left: -10px;
+      border-radius: 8px;
+      transition: color 0.15s ease, background 0.15s ease;
+    }
+    .fb-back:hover { color: var(--ink); background: var(--paper-deep); text-decoration: none; }
+
+    .fb-lang {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--card);
+    }
+    .fb-lang button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      padding: 6px 14px;
+      cursor: pointer;
+      color: var(--ink);
+      opacity: 0.62;
+      transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+    }
+    html[lang="zh-CN"] .fb-lang-zh, html[lang="zh"] .fb-lang-zh,
+    html[lang="en"] .fb-lang-en { opacity: 1; background: var(--ink); color: var(--paper); }
+
+    /* —— 页头 —— */
+    .fb-head { text-align: center; padding: 26px 0 8px; }
+    .fb-head h1 {
+      font-size: clamp(1.7rem, 4vw, 2.3rem);
+      margin: 0 0 10px;
+    }
+    .fb-head h1 em {
+      font-style: normal;
+      color: var(--accent-deep);
+      border-bottom: 3px solid var(--accent-soft);
+    }
+    .fb-head p { margin: 0; color: var(--ink-soft); font-size: 1.02rem; }
+
+    /* —— 顶部必看提示 —— */
+    .fb-notice {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin: 24px 0 26px;
+      padding: 13px 16px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(185, 58, 34, 0.35);
+      border-left: 4px solid var(--accent);
+      border-radius: 10px;
+      color: var(--accent-deep);
+      font-size: 0.94rem;
+    }
+    .fb-notice svg { flex: none; margin-top: 4px; }
+    .fb-notice p { margin: 0; }
+
+    /* —— 卡片 —— */
+    .fb-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(42, 38, 32, 0.07);
+      padding: 24px 26px;
+      margin-bottom: 18px;
+    }
+    .fb-card h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.18rem;
+      margin: 0 0 6px;
+    }
+    .fb-card h2 .fb-tile {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(185, 58, 34, 0.22);
+      color: var(--accent-deep);
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      flex: none;
+    }
+    .fb-hint { color: var(--ink-faint); font-size: 0.89rem; margin: 0 0 16px; }
+
+    .fb-email-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      background: var(--paper);
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      padding: 12px 15px;
+      margin-bottom: 12px;
+    }
+    .fb-email-row:last-child { margin-bottom: 0; }
+    .fb-addr { margin: 0; font-size: 0.96rem; word-break: break-all; font-family: var(--font-mono); }
+    .fb-addr small {
+      display: block;
+      font-family: var(--font-sans);
+      color: var(--ink-faint);
+      font-size: 0.79rem;
+    }
+
+    .fb-btnrow { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* —— 按钮（同站点 .btn 观感） —— */
+    .fb-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 0.94rem;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      text-decoration: none;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--ink);
+      transition: transform 0.15s ease, background 0.15s ease,
+        border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .fb-btn:hover { text-decoration: none; transform: translateY(-2px); border-color: var(--ink-soft); background: var(--paper-deep); }
+    .fb-btn:active { transform: translateY(0); }
+    .fb-btn--solid {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--card);
+      box-shadow: 0 8px 20px rgba(185, 58, 34, 0.28);
+    }
+    .fb-btn--solid:hover { background: var(--accent-deep); border-color: var(--accent-deep); }
+    .fb-btn--sm { padding: 7px 14px; font-size: 0.85rem; border-radius: 10px; }
+    .fb-btn.fb-copied {
+      background: #eaf2ec;
+      border-color: #4a7c59;
+      color: #4a7c59;
+    }
+
+    /* —— 留言区 —— */
+    .fb-label {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+    #fb-text {
+      width: 100%;
+      min-height: 190px;
+      resize: vertical;
+      background: var(--paper);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-family: var(--font-sans);
+      font-size: 0.93rem;
+      line-height: 1.65;
+    }
+    #fb-text:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      border-color: var(--accent);
+    }
+
+    /* —— Issues —— */
+    .fb-issues-link {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      word-break: break-all;
+      font-weight: 700;
+    }
+    .fb-issues-note { color: var(--ink-faint); font-size: 0.85rem; margin: 10px 0 0; }
+
+    /* —— 页脚 —— */
+    .fb-foot {
+      text-align: center;
+      color: var(--ink-faint);
+      font-size: 0.83rem;
+      margin-top: 36px;
+    }
+    .fb-foot a { color: var(--ink-soft); font-weight: 700; }
+
+    @media (max-width: 560px) {
+      .fb-card { padding: 18px 16px; }
+      .fb-btnrow { width: 100%; }
+      .fb-btnrow .fb-btn { flex: 1 1 auto; }
+      .fb-head { padding-top: 18px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .fb-btn:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="fb-wrap">
+
+    <!-- 顶栏：返回首页 + 中英切换 -->
+    <div class="fb-topbar">
+      <a class="fb-back" href="index.html">← <span data-lang="zh">返回首页</span><span data-lang="en">Back to Home</span></a>
+      <div class="fb-lang" role="group" aria-label="语言切换 / Language">
+        <button type="button" class="fb-lang-zh" id="langOptZh" data-target-lang="zh" aria-pressed="true" lang="zh-CN">中</button>
+        <button type="button" class="fb-lang-en" id="langOptEn" data-target-lang="en" aria-pressed="false" lang="en">EN</button>
+      </div>
+    </div>
+
+    <header class="fb-head">
+      <h1>
+        <span data-lang="zh">反馈与<em>建议</em></span>
+        <span data-lang="en">Feedback &amp; <em>Suggestions</em></span>
+      </h1>
+      <p>
+        <span data-lang="zh">AI 背单词 · 欢迎告诉我们问题或想法</span>
+        <span data-lang="en">AI 背单词 · Tell us what's broken or what to improve</span>
+      </p>
+    </header>
+
+    <!-- 顶部必看说明 -->
+    <div class="fb-notice" role="note">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.4 5.3 5.6.6-4.2 3.9 1.2 5.6L12 15.5 7 18.4l1.2-5.6L4 8.9l5.6-.6L12 3Z"/></svg>
+      <p>
+        <span data-lang="zh">必看：反馈邮件主题请以<b>【AI 背单词】</b>开头 —— 作者已设置自动星标，带此前缀的邮件保证会被看到。</span>
+        <span data-lang="en">Must-read: start your email subject with <b>【AI 背单词】</b> — the author has an auto-star filter, so prefixed mail is guaranteed to be seen.</span>
+      </p>
+    </div>
+
+    <!-- ① 邮箱直达 -->
+    <section class="fb-card" aria-labelledby="fb-email-title">
+      <h2 id="fb-email-title">
+        <span class="fb-tile" aria-hidden="true">邮</span>
+        <span data-lang="zh">邮箱反馈</span><span data-lang="en">Email</span>
+      </h2>
+      <p class="fb-hint">
+        <span data-lang="zh">点击按钮即打开邮件客户端 / Gmail 网页，主题与正文模板已自动填好。</span>
+        <span data-lang="en">Buttons open your mail client / Gmail web with subject and body template pre-filled.</span>
+      </p>
+
+      <!-- 主邮箱：QQ 邮箱 -->
+      <div class="fb-email-row">
+        <p class="fb-addr">
+          898249759@qq.com
+          <small><span data-lang="zh">主邮箱 · QQ 邮箱（推荐）</span><span data-lang="en">Primary · QQ Mail (recommended)</span></small>
+        </p>
+        <span class="fb-btnrow">
+          <a class="fb-btn fb-btn--solid" id="mailto-qq"
+             href="mailto:898249759@qq.com?subject=%E3%80%90AI%20%E8%83%8C%E5%8D%95%E8%AF%8D%E3%80%91%E5%8F%8D%E9%A6%88&body=%E5%8F%8D%E9%A6%88%E5%86%85%E5%AE%B9%EF%BC%9A%0A%EF%BC%88%E8%AF%B7%E5%9C%A8%E6%AD%A4%E6%8F%8F%E8%BF%B0%E9%97%AE%E9%A2%98%E6%88%96%E5%BB%BA%E8%AE%AE%EF%BC%89%0A%0A%E7%9B%B8%E5%85%B3%E9%A1%B5%E9%9D%A2%EF%BC%9A%0A%EF%BC%88%E4%BE%8B%E5%A6%82%EF%BC%9A%E9%A6%96%E9%A1%B5%20%2F%20%E5%9C%A8%E7%BA%BF%E5%BA%94%E7%94%A8%20www.vocabfan.online%20%2F%20%E7%89%B9%E6%80%A7%20%2F%20%E5%AD%A6%E4%B9%A0%E6%B5%81%E7%A8%8B%20%2F%20%E5%BC%80%E5%8F%91%E8%BF%9B%E5%B1%95%20%2F%20%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%89%0A%0A%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F%EF%BC%9A%0A%EF%BC%88%E9%80%89%E5%A1%AB%EF%BC%8C%E6%96%B9%E4%BE%BF%E5%9B%9E%E8%AE%BF%EF%BC%89">
+            <span data-lang="zh">邮件发送</span><span data-lang="en">Send Email</span>
+          </a>
+          <button type="button" class="fb-btn fb-btn--sm copy-email" data-email="898249759@qq.com">
+            <span data-lang="zh">复制邮箱地址</span><span data-lang="en">Copy Address</span>
+          </button>
+        </span>
+      </div>
+
+      <!-- 次邮箱：Gmail 网页写信 -->
+      <div class="fb-email-row">
+        <p class="fb-addr">
+          yangfan.070312@gmail.com
+          <small><span data-lang="zh">次邮箱 · Gmail（网页写信，免装客户端）</span><span data-lang="en">Secondary · Gmail (web compose, no client needed)</span></small>
+        </p>
+        <span class="fb-btnrow">
+          <a class="fb-btn" id="gmail-link" target="_blank" rel="noopener"
+             href="https://mail.google.com/mail/?view=cm&amp;to=yangfan.070312@gmail.com&amp;su=%E3%80%90AI%20%E8%83%8C%E5%8D%95%E8%AF%8D%E3%80%91%E5%8F%8D%E9%A6%88&amp;body=%E5%8F%8D%E9%A6%88%E5%86%85%E5%AE%B9%EF%BC%9A%0A%EF%BC%88%E8%AF%B7%E5%9C%A8%E6%AD%A4%E6%8F%8F%E8%BF%B0%E9%97%AE%E9%A2%98%E6%88%96%E5%BB%BA%E8%AE%AE%EF%BC%89%0A%0A%E7%9B%B8%E5%85%B3%E9%A1%B5%E9%9D%A2%EF%BC%9A%0A%EF%BC%88%E4%BE%8B%E5%A6%82%EF%BC%9A%E9%A6%96%E9%A1%B5%20%2F%20%E5%9C%A8%E7%BA%BF%E5%BA%94%E7%94%A8%20www.vocabfan.online%20%2F%20%E7%89%B9%E6%80%A7%20%2F%20%E5%AD%A6%E4%B9%A0%E6%B5%81%E7%A8%8B%20%2F%20%E5%BC%80%E5%8F%91%E8%BF%9B%E5%B1%95%20%2F%20%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%89%0A%0A%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F%EF%BC%9A%0A%EF%BC%88%E9%80%89%E5%A1%AB%EF%BC%8C%E6%96%B9%E4%BE%BF%E5%9B%9E%E8%AE%BF%EF%BC%89">
+            <span data-lang="zh">Gmail 网页写信</span><span data-lang="en">Compose in Gmail</span>
+          </a>
+          <button type="button" class="fb-btn fb-btn--sm copy-email" data-email="yangfan.070312@gmail.com">
+            <span data-lang="zh">复制邮箱地址</span><span data-lang="en">Copy Address</span>
+          </button>
+        </span>
+      </div>
+    </section>
+
+    <!-- ② 站内快速留言：textarea 拼 mailto -->
+    <section class="fb-card" aria-labelledby="fb-draft-title">
+      <h2 id="fb-draft-title">
+        <span class="fb-tile" aria-hidden="true">留</span>
+        <span data-lang="zh">在线留言（站内草稿）</span><span data-lang="en">Quick Draft</span>
+      </h2>
+      <p class="fb-hint">
+        <span data-lang="zh">在下方填写后点按钮，会为您拼好一封完整反馈邮件并打开邮件客户端。</span>
+        <span data-lang="en">Fill in below, then the button assembles a complete feedback email and opens your mail client.</span>
+      </p>
+      <label class="fb-label" for="fb-text">
+        <span data-lang="zh">反馈内容</span><span data-lang="en">Feedback content</span>
+      </label>
+      <textarea id="fb-text"></textarea>
+      <div class="fb-btnrow" style="margin-top:12px">
+        <button type="button" class="fb-btn fb-btn--solid" id="send-mailto">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          <span data-lang="zh">打开邮件客户端发送</span><span data-lang="en">Open Mail Client to Send</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ③ GitHub Issues -->
+    <section class="fb-card" aria-labelledby="fb-issues-title">
+      <h2 id="fb-issues-title">
+        <span class="fb-tile" aria-hidden="true">题</span>
+        <span data-lang="zh">GitHub Issues</span><span data-lang="en">GitHub Issues</span>
+      </h2>
+      <p class="fb-hint">
+        <span data-lang="zh">适合公开的问题报告与功能建议，处理进度透明可追踪。</span>
+        <span data-lang="en">Best for public bug reports and feature requests with trackable progress.</span>
+      </p>
+      <a class="fb-issues-link" href="https://github.com/yangfanwudi/beidanci-site/issues" target="_blank" rel="noopener">https://github.com/yangfanwudi/beidanci-site/issues</a>
+      <p class="fb-issues-note">
+        <span data-lang="zh">* 需要 GitHub 账号；没有账号时请优先使用上方邮箱反馈。</span>
+        <span data-lang="en">* A GitHub account is required; without one, please use the email options above.</span>
+      </p>
+    </section>
+
+    <footer class="fb-foot">
+      <p style="margin:0 0 6px">
+        <span data-lang="zh">AI 背单词 · 间隔重复词汇学习应用（<a href="https://www.vocabfan.online/" target="_blank" rel="noopener noreferrer">www.vocabfan.online</a>）</span>
+        <span data-lang="en">AI 背单词 — a spaced-repetition vocabulary app (<a href="https://www.vocabfan.online/" target="_blank" rel="noopener noreferrer">www.vocabfan.online</a>)</span>
+      </p>
+      <p style="margin:0"><a href="index.html">© <span id="fb-year">2026</span> AI 背单词</a></p>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var SUBJECT = '【AI 背单词】反馈';
+      var MAIL_PRIMARY = '898249759@qq.com';
+      var MAIL_SECONDARY = 'yangfan.070312@gmail.com';
+      var LANG_KEY = 'beidanci-lang';
+
+      var TEMPLATES = {
+        zh: '反馈内容：\n（请在此描述问题或建议）\n\n相关页面：\n（例如：首页 / 在线应用 www.vocabfan.online / 特性 / 学习流程 / 开发进展 / 常见问题）\n\n联系方式：\n（选填，方便回访）',
+        en: 'Feedback:\n(describe the issue or suggestion here)\n\nPage:\n(e.g. Home / the app at www.vocabfan.online / Features / Session / Progress / FAQ)\n\nContact:\n(optional, so we can follow up)'
+      };
+      var PLACEHOLDERS = {
+        zh: '可直接修改下方模板后发送……',
+        en: 'Edit the template below and send…'
+      };
+      var metaPacks = {
+        zh: {
+          langAttr: 'zh-CN',
+          title: '反馈 · AI 背单词 — 间隔重复词汇学习应用',
+          description: '向 AI 背单词提交问题与建议：主邮箱 898249759@qq.com、次邮箱 yangfan.070312@gmail.com，或前往 GitHub Issues。邮件主题以【AI 背单词】开头，作者已设自动星标，保证会被看到。'
+        },
+        en: {
+          langAttr: 'en',
+          title: 'Feedback · AI 背单词 — A Spaced-Repetition Vocabulary App',
+          description: 'Send feedback for AI 背单词: primary email 898249759@qq.com, secondary yangfan.070312@gmail.com, or open a GitHub Issue. Subjects starting with 【AI 背单词】 are auto-starred by the author and guaranteed to be seen.'
+        }
+      };
+
+      var currentLang = 'zh';
+      var textarea = document.getElementById('fb-text');
+
+      /* ---------- 元信息同步（title / description） ---------- */
+      function setMetaContent(selector, value) {
+        var el = document.head.querySelector(selector);
+        if (el) el.setAttribute('content', value);
+      }
+      function applyMeta(lang) {
+        var pack = metaPacks[lang];
+        document.title = pack.title;
+        setMetaContent('meta[name="description"]', pack.description);
+      }
+
+      /* ---------- 中英切换：html[lang] 驱动 data-lang 元素 ---------- */
+      function setLang(lang) {
+        if (lang !== 'zh' && lang !== 'en') lang = 'zh';
+        currentLang = lang;
+        document.documentElement.lang = metaPacks[lang].langAttr;
+        var zhBtn = document.getElementById('langOptZh');
+        var enBtn = document.getElementById('langOptEn');
+        if (zhBtn) zhBtn.setAttribute('aria-pressed', lang === 'zh' ? 'true' : 'false');
+        if (enBtn) enBtn.setAttribute('aria-pressed', lang === 'en' ? 'true' : 'false');
+        applyMeta(lang);
+        /* textarea 未被用户修改时，跟随语言切换模板 */
+        if (!textarea.dataset.dirty || textarea.value === textarea.dataset.lastTemplate) {
+          textarea.value = TEMPLATES[lang];
+          textarea.dataset.lastTemplate = TEMPLATES[lang];
+        }
+        textarea.placeholder = PLACEHOLDERS[lang];
+        /* 语言切换后同步刷新两个直达链接的正文模板 */
+        applyDirectLinks();
+        try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+      }
+      function switchLang(lang) { setLang(lang); }
+      window.setLang = setLang;       /* 契约函数，与站点 app.js 一致 */
+      window.switchLang = switchLang; /* 供自检脚本识别 */
+
+      document.getElementById('langOptZh').addEventListener('click', function () { setLang('zh'); });
+      document.getElementById('langOptEn').addEventListener('click', function () { setLang('en'); });
+
+      /* ---------- 直达链接（HTML 内为中文静态兜底，JS 按 lang 刷新） ---------- */
+      function mailtoUrl(mail, subject, body) {
+        return 'mailto:' + mail + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      }
+      function gmailUrl(mail, subject, body) {
+        return 'https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(mail) +
+          '&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      }
+      function applyDirectLinks() {
+        var t = TEMPLATES[currentLang];
+        document.getElementById('mailto-qq').href = mailtoUrl(MAIL_PRIMARY, SUBJECT, t);
+        document.getElementById('gmail-link').href = gmailUrl(MAIL_SECONDARY, SUBJECT, t);
+      }
+
+      /* ---------- textarea 草稿 → 打开邮件客户端 ---------- */
+      textarea.addEventListener('input', function () { textarea.dataset.dirty = '1'; });
+      document.getElementById('send-mailto').addEventListener('click', function () {
+        var text = textarea.value && textarea.value.trim() ? textarea.value : TEMPLATES[currentLang];
+        window.location.href = mailtoUrl(MAIL_PRIMARY, SUBJECT, text);
+      });
+
+      /* ---------- 复制邮箱地址（clipboard API + execCommand 兜底） ---------- */
+      function copyText(text, done) {
+        function fallback() {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed'; ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); done(true); }
+          catch (e) { done(false); }
+          document.body.removeChild(ta);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+        } else { fallback(); }
+      }
+      document.querySelectorAll('.copy-email').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          copyText(btn.getAttribute('data-email'), function (ok) {
+            if (!ok) {
+              window.prompt(currentLang === 'zh' ? '请手动复制：' : 'Copy manually:', btn.getAttribute('data-email'));
+              return;
+            }
+            var label = btn.querySelector('[data-lang="' + currentLang + '"]');
+            if (label) {
+              var old = label.textContent;
+              label.textContent = currentLang === 'zh' ? '已复制 ✓' : 'Copied ✓';
+              btn.classList.add('fb-copied');
+              setTimeout(function () { label.textContent = old; btn.classList.remove('fb-copied'); }, 1600);
+            }
+          });
+        });
+      });
+
+      /* ---------- 初始化 ---------- */
+      document.getElementById('fb-year').textContent = String(new Date().getFullYear());
+      var initial = document.documentElement.lang === 'en' ? 'en' : 'zh';
+      textarea.value = TEMPLATES[initial];
+      textarea.dataset.lastTemplate = TEMPLATES[initial];
+      textarea.placeholder = PLACEHOLDERS[initial];
+      setLang(initial);
+    })();
+  </script>
+</body>
+</html>

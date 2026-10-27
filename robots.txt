@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yangfanwudi.github.io/beidanci-site/sitemap.xml
